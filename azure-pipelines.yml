@@ -48,7 +48,7 @@ stages:
 
 
 # ==========================================
-# Stage 2 - Connect to AKS
+# Stage 2 - Deploy to AKS
 # ==========================================
 
 - stage: Deploy
@@ -81,11 +81,16 @@ stages:
             --name $(aksClusterName) \
             --overwrite-existing
 
-          echo "Deploying application..."
+          echo "Applying Kubernetes configuration..."
 
           kubectl apply -f deployment.yaml
 
-          echo "Checking deployment..."
+          echo "Updating deployment with new image..."
+
+          kubectl set image deployment/simplehtml-app \
+            simplehtml-app=$(containerRegistry)/$(imageRepository):$(Build.BuildId)
+
+          echo "Waiting for deployment rollout..."
 
           kubectl rollout status deployment/simplehtml-app
 
