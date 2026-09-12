@@ -10,7 +10,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  imageRepository: 'AKS-simplehtml'
+  imageRepository: 'aks-simplehtml'
   containerRegistry: 'aksacr11.azurecr.io'
   dockerRegistryServiceConnection: 'ACR-Service-Connection'
 
