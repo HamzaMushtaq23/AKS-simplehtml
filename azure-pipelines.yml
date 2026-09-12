@@ -52,21 +52,21 @@ stages:
 # ==========================================
 
 - stage: Deploy
-  displayName: 'Connect to AKS'
+  displayName: 'Deploy to AKS'
 
   dependsOn: Build
   condition: succeeded()
 
   jobs:
-  - job: ConnectToAKS
-    displayName: 'Connect to AKS'
+  - job: DeployToAKS
+    displayName: 'Deploy Application'
 
     steps:
 
     - checkout: self
 
     - task: AzureCLI@2
-      displayName: 'Connect to AKS'
+      displayName: 'Deploy to AKS'
       inputs:
         azureSubscription: $(azureServiceConnection)
         scriptType: bash
@@ -74,11 +74,25 @@ stages:
 
         inlineScript: |
 
+          echo "Getting AKS credentials..."
+
           az aks get-credentials \
             --resource-group $(aksResourceGroup) \
             --name $(aksClusterName) \
             --overwrite-existing
 
-          echo "Checking AKS nodes..."
+          echo "Deploying application..."
 
-          kubectl get nodes
+          kubectl apply -f deployment.yaml
+
+          echo "Checking deployment..."
+
+          kubectl rollout status deployment/simplehtml-app
+
+          echo "Checking pods..."
+
+          kubectl get pods
+
+          echo "Checking service..."
+
+          kubectl get service simplehtml-service
