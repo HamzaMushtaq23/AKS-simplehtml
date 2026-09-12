@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: simplehtml-app
-          image: aksacr11.azurecr.io/AKS-simplehtml:latest
+          image: aksacr11.azurecr.io/aks-simplehtml:latest
           ports:
             - containerPort: 80
 
