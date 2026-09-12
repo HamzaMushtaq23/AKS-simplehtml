@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simplehtml-app
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: simplehtml-app
+
+  template:
+    metadata:
+      labels:
+        app: simplehtml-app
+
+    spec:
+      containers:
+        - name: simplehtml-app
+          image: aksacr11.azurecr.io/AKS-simplehtml:latest
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: simplehtml-service
+spec:
+  type: LoadBalancer
+
+  selector:
+    app: simplehtml-app
+
+  ports:
+    - port: 80
+      targetPort: 80
