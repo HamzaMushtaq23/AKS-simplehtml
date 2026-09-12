@@ -1,0 +1,84 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  imageRepository: 'AKS-simplehtml'
+  containerRegistry: 'aksacr11.azurecr.io'
+  dockerRegistryServiceConnection: 'ACR-Service-Connection'
+
+  azureServiceConnection: 'Azure-Service-Connection'
+  aksResourceGroup: 'aks-demo-rg'
+  aksClusterName: 'aks-demo'
+
+stages:
+
+# ==========================================
+# Stage 1 - Build and Push Docker Image
+# ==========================================
+
+- stage: Build
+  displayName: 'Build and Push'
+
+  jobs:
+  - job: BuildAndPush
+    displayName: 'Build Docker Image'
+
+    steps:
+
+    - checkout: self
+
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: Dockerfile
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          latest
+          $(Build.BuildId)
+
+
+# ==========================================
+# Stage 2 - Connect to AKS
+# ==========================================
+
+- stage: Deploy
+  displayName: 'Connect to AKS'
+
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - job: ConnectToAKS
+    displayName: 'Connect to AKS'
+
+    steps:
+
+    - checkout: self
+
+    - task: AzureCLI@2
+      displayName: 'Connect to AKS'
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+
+        inlineScript: |
+
+          az aks get-credentials \
+            --resource-group $(aksResourceGroup) \
+            --name $(aksClusterName) \
+            --overwrite-existing
+
+          echo "Checking AKS nodes..."
+
+          kubectl get nodes
